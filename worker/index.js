@@ -1,19 +1,22 @@
 import keys from "./keys.js";
-import redis from "redis";
+import { createClient } from "redis";
 
-const redisClient = redis.createClient({
-  host: keys.redisHost,
-  port: keys.redisPort,
-  retry_strategy: () => 1000,
+const redisClient = createClient({
+  url: `redis://${keys.redisHost}:${keys.redisPort}`,
 });
+await redisClient.connect();
 
 function fib(index) {
   if (index < 2) return 1;
   return fib(index - 1) + fib(index - 2);
 }
 
-redisClient.on("message", (channel, message) => {
-  redisClient.hset("values", message, fib(parseInt(message)));
-});
+(async () => {
+  const redisPublisher = redisClient.duplicate();
+  await redisPublisher.connect();
 
-redisClient.subscribe("insert");
+  redisPublisher.subscribe("insert", async (message) => {
+    const value = fib(parseInt(message));
+    await redisClient.hSet("values", message, value);
+  });
+})().catch((err) => console.error("Redis connection error:", err));

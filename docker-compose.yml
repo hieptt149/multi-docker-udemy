@@ -46,9 +46,12 @@ services:
       - REDIS_PORT=6379
       - PGUSER=postgres
       - PGHOST=postgres
-      - PGDATABASE=udemy
+      - PGDATABASE=postgres
       - PGPASSWORD=postgres
       - PGPORT=5432
+    depends_on:
+      - redis
+      - postgres
 
   client:
     build:
@@ -67,3 +70,8 @@ services:
     volumes:
       - /app/node_modules
       - ./worker:/app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
