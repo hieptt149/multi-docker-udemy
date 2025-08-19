@@ -3,43 +3,32 @@
   "containerDefinitions": [
     {
       "name": "client",
-      "image": "hieptt149/multil-docker-client:latest",
-      "essential": true,
-      "memory": 512,
-      "portMappings": [
-        {
-          "containerPort": 3000,
-          "hostPort": 80
-        }
-      ],
-      "environment": [
-        {
-          "name": "REACT_APP_API_URL",
-          "value": "http://your-api-url"
-        }
-      ]
+      "image": "hieptt149/multi-docker-client",
+      "hostname": "client",
+      "essential": false
     },
     {
       "name": "server",
-      "image": "your-docker-image-for-server:latest",
+      "image": "hieptt149/multi-docker-server",
+      "hostname": "api",
+      "essential": false
+    },
+    {
+      "name": "worker",
+      "image": "hieptt149/multi-docker-worker",
+      "essential": false
+    },
+    {
+      "name": "nginx",
+      "image": "hieptt149/multi-docker-nginx",
       "essential": true,
-      "memory": 512,
       "portMappings": [
         {
-          "containerPort": 5000,
-          "hostPort": 5000
+          "hostPort": 80,
+          "containerPort": 80
         }
       ],
-      "environment": [
-        {
-          "name": "DATABASE_URL",
-          "value": "your-database-url"
-        },
-        {
-          "name": "REDIS_URL",
-          "value": "your-redis-url"
-        }
-      ]
+      "links": ["client", "server"]
     }
   ]
 }
