@@ -32,6 +32,6 @@ spec:
               value: postgres
             - name: PGPASSWORD
               valueFrom:
-                secretKeyRef:
+                secretKeyRef: # create this secret in GKE
                   name: pgpassword
                   key: PGPASSWORD
