@@ -1,61 +1,61 @@
-name: Deploy complex app to k8s cluster
-on:
-  push:
-    branches:
-      - develop
-env:
-  SHA: $(git rev-parse HEAD)
+# name: Deploy complex app to k8s cluster
+# on:
+#   push:
+#     branches:
+#       - develop
+# env:
+#   SHA: $(git rev-parse HEAD)
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
 
-      - name: Test
-        run: |-
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -t hieptt149/multi-docker-client-test -f ./client/Dockerfile.dev ./client
-          docker run -e CI=true hieptt149/multi-docker-client-test npm test
+#       - name: Test
+#         run: |-
+#           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+#           docker build -t hieptt149/multi-docker-client-test -f ./client/Dockerfile.dev ./client
+#           docker run -e CI=true hieptt149/multi-docker-client-test npm test
 
-      - name: Set Service Key
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: "${{ secrets.GKE_SA_KEY }}"
+#       - name: Set Service Key
+#         uses: google-github-actions/auth@v1
+#         with:
+#           credentials_json: "${{ secrets.GKE_SA_KEY }}"
 
-      - name: Set GCP Project
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: "multi-docker-379103"
+#       - name: Set GCP Project
+#         uses: google-github-actions/setup-gcloud@v1
+#         with:
+#           project_id: "multi-docker-379103"
 
-      - name: Authenticate to GKE
-        run: |-
-          gcloud --quiet auth configure-docker
+#       - name: Authenticate to GKE
+#         run: |-
+#           gcloud --quiet auth configure-docker
 
-      - name: Get credentials for GKE
-        uses: google-github-actions/get-gke-credentials@v1
-        with:
-          cluster_name: "multi-cluster"
-          location: "us-central1-c"
+#       - name: Get credentials for GKE
+#         uses: google-github-actions/get-gke-credentials@v1
+#         with:
+#           cluster_name: "multi-cluster"
+#           location: "us-central1-c"
 
-      - name: Build Docker Images
-        run: |-
-          docker build -t hieptt149/multi-docker-client:latest -t hieptt149/multi-docker-client:${{env.SHA}} -f ./client/Dockerfile ./client
-          docker build -t hieptt149/multi-docker-server:latest -t hieptt149/multi-docker-server:${{env.SHA}} -f ./server/Dockerfile ./server
-          docker build -t hieptt149/multi-docker-worker:latest -t hieptt149/multi-docker-worker:${{env.SHA}} -f ./worker/Dockerfile ./worker
+#       - name: Build Docker Images
+#         run: |-
+#           docker build -t hieptt149/multi-docker-client:latest -t hieptt149/multi-docker-client:${{env.SHA}} -f ./client/Dockerfile ./client
+#           docker build -t hieptt149/multi-docker-server:latest -t hieptt149/multi-docker-server:${{env.SHA}} -f ./server/Dockerfile ./server
+#           docker build -t hieptt149/multi-docker-worker:latest -t hieptt149/multi-docker-worker:${{env.SHA}} -f ./worker/Dockerfile ./worker
 
-      - name: Push Docker Images
-        run: |-
-          docker push hieptt149/multi-docker-client:latest
-          docker push hieptt149/multi-docker-client:${{env.SHA}}
-          docker push hieptt149/multi-docker-server:latest
-          docker push hieptt149/multi-docker-server:${{env.SHA}}
-          docker push hieptt149/multi-docker-worker:latest
-          docker push hieptt149/multi-docker-worker:${{env.SHA}}
-      - name: Apply K8s Configs
-        run: |-
-          kubectl apply -f k8s-complex
-            kubectl set image deployments/server-deployment server=hieptt149/multi-docker-server:${{env.SHA}}
-            kubectl set image deployments/client-deployment client=hieptt149/multi-docker-client:${{env.SHA}}
-            kubectl set image deployments/worker-deployment worker=hieptt149/multi-docker-worker:${{env.SHA}}
+#       - name: Push Docker Images
+#         run: |-
+#           docker push hieptt149/multi-docker-client:latest
+#           docker push hieptt149/multi-docker-client:${{env.SHA}}
+#           docker push hieptt149/multi-docker-server:latest
+#           docker push hieptt149/multi-docker-server:${{env.SHA}}
+#           docker push hieptt149/multi-docker-worker:latest
+#           docker push hieptt149/multi-docker-worker:${{env.SHA}}
+#       - name: Apply K8s Configs
+#         run: |-
+#           kubectl apply -f k8s-complex
+#             kubectl set image deployments/server-deployment server=hieptt149/multi-docker-server:${{env.SHA}}
+#             kubectl set image deployments/client-deployment client=hieptt149/multi-docker-client:${{env.SHA}}
+#             kubectl set image deployments/worker-deployment worker=hieptt149/multi-docker-worker:${{env.SHA}}
