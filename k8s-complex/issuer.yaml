@@ -1,14 +1,15 @@
 apiVersion: cert-manager.io/v1
 
-kind: Certificate
+kind: ClusterIssuer
 metadata:
-  name: yourdomain-com-tls
+  name: letsencrypt-prod
 spec:
-  secretName: yourdomain-com
-  issuerRef:
-    name: letsencrypt-prod
-    kind: ClusterIssuer
-  commonName: yourdomain.com
-  dnsNames:
-    - yourdomain.com
-    - www.yourdomain.com
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: "test@test.com"
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
